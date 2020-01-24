@@ -30,9 +30,9 @@ def load_housing_data(filename):
 
 housing = load_housing_data(filename)
 
-# print(housing.info())
-# print(housing['ocean_proximity'].value_counts())
-# print(housing.describe())
+print(housing.info())
+print(housing['ocean_proximity'].value_counts())
+print(housing.describe())
 
 
 # create new category for stratified sampling
@@ -41,7 +41,7 @@ housing["income_cat"] = np.ceil(housing['median_income'] / 1.5)
 housing['income_cat'].where(housing['income_cat'] < 5, 5.0, inplace=True)
 
 train_set, test_set = train_test_split(housing, test_size=0.2, random_state=42)
-# print(len(train_set), len(test_set))
+print(len(train_set), len(test_set))
 
 
 split = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=42)
@@ -49,11 +49,11 @@ for train_index, test_index in split.split(housing, housing['income_cat']):
     strat_train_set = housing.iloc[train_index]
     strat_test_set = housing.iloc[test_index]
 
-# print(len(strat_train_set), len(strat_test_set))
-# print(housing['income_cat'].value_counts() / len(housing))
+print(len(strat_train_set), len(strat_test_set))
+print(housing['income_cat'].value_counts() / len(housing))
 
-# print(train_set['income_cat'].value_counts() / len(train_set))
-# print(strat_train_set['income_cat'].value_counts() / len(strat_train_set))
+print(train_set['income_cat'].value_counts() / len(train_set))
+print(strat_train_set['income_cat'].value_counts() / len(strat_train_set))
 
 # remove 'income_cat' so data is back to its original state
 
@@ -61,11 +61,39 @@ strat_train_set = strat_train_set.drop(columns=['income_cat'])
 strat_test_set = strat_test_set.drop(columns=['income_cat'])
 
 
-# strat_train_set.hist(bins=50, figsize=(20, 15))
-# plt.show()
+strat_train_set.hist(bins=50, figsize=(20, 15))
+plt.show()
 
 # Make copy to explore it without harming training set
 housing = strat_train_set.copy()
+
+
+# """
+housing.plot(kind='scatter', x='longitude', y='latitude', alpha=0.4,
+             cmap=plt.get_cmap('jet'), colorbar=True, c='median_house_value',
+             s=housing['population']/100, label='population', figsize=(10, 7))
+plt.legend()
+plt.show()
+
+corr_matrix = housing.corr()
+
+print(corr_matrix["median_house_value"].sort_values(ascending=False))
+
+attributes = ["median_house_value", "median_income", "total_rooms", "housing_median_age"]
+
+scatter_matrix(housing[attributes], figsize=(12, 8))
+housing.plot(kind='scatter', x='median_income', y='median_house_value', alpha=0.1)
+
+plt.show()
+
+housing['rooms_per_household'] = housing['total_rooms'] / housing['households']
+housing['bedrooms_per_room'] = housing['total_bedrooms'] / housing['total_rooms']
+housing['population_per_household'] = housing['population'] / housing['households']
+
+corr_matrix = housing.corr()
+print(corr_matrix['median_house_value'].sort_values(ascending=False))
+# """
+
 
 # Separate the predictors and the target values (drop creates a copy)
 housing = strat_train_set.drop('median_house_value', axis=1)
@@ -233,5 +261,3 @@ final_mse = mean_squared_error(y_test, final_predictions)
 final_rmse = np.sqrt(final_mse)
 
 print(final_rmse)
-
-
